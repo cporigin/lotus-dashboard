@@ -51,3 +51,4 @@ class UserPerformance(Base):
     first_last = Column(String(255), index=True)
     deal_code = Column(String(255), index=True)
     group_id = Column(Integer, index=True)
+    type = Column(String(255), index=True)
