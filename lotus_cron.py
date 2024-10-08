@@ -12,6 +12,7 @@ class LotosDashboardCron:
         self.local_engine = None
         self.server_engine = None
         self.config = self.load_config(path)
+        self.init_db()
 
     def init_db(self):
         local_engine = self.get_local_engine()
