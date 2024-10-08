@@ -26,7 +26,7 @@ class UserPerformance(Base):
     task_updated_at = Column(DateTime, index=True)
     deal_comment_id = Column(Integer, index=True)
     deal_comment_user_id = Column(Integer, index=True)
-    text = Column(Text, index=True)
+    text = Column(Text)
     status = Column(String(255), index=True)
     comment_created_at = Column(DateTime, index=True)
     time_close_deal_task = Column(DateTime, index=True)
