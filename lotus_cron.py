@@ -55,7 +55,7 @@ class LotosDashboardCron:
         engine = self.get_local_engine()
         df = pd.read_csv(csv_file)
         df.where(df.notnull(), None)
-        df.replace({np.nan: None, pd.NaT: None, "NaT": None}, inplace=True)
+        df.replace({np.nan: None, pd.NaT: None, "NaT": None, "NaN": None}, inplace=True)
         self.truncate_db()
         df.to_sql(
             model.__tablename__,
@@ -68,7 +68,7 @@ class LotosDashboardCron:
     def dataframe_to_db(self, model: Base, df: pd.DataFrame):
         engine = self.get_local_engine()
         df.where(df.notnull(), None)
-        df.replace({np.nan: None, pd.NaT: None, "NaT": None}, inplace=True)
+        df.replace({np.nan: None, pd.NaT: None, "NaT": None, "NaN": None}, inplace=True)
         self.truncate_db()
         df.to_sql(
             model.__tablename__,
