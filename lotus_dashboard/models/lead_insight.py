@@ -46,3 +46,4 @@ class LeadInsight(Base):
     deal_time_used = Column(DECIMAL(10, 6), index=True)
     first_contacted_time_used = Column(DECIMAL(10, 6), index=True)
     contacted_time_used = Column(DECIMAL(10, 6), index=True)
+    time_first_activity = Column(DECIMAL(10, 6), index=True)
