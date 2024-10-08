@@ -49,3 +49,4 @@ class UserPerformance(Base):
     last_name = Column(String(255), index=True)
     user_comment_created_at = Column(DateTime, index=True)
     first_last = Column(String(255), index=True)
+    deal_code = Column(String(255), index=True)
