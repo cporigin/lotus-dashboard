@@ -34,6 +34,7 @@ class LeadInsight(Base):
     status = Column(String(255), index=True)
     task_status = Column(String(255), index=True)
     deal_task_due_date = Column(String(255), index=True)
+    deal_task_updated_at = Column(DateTime, index=True)
     is_expired = Column(Boolean, index=True)
     comment_id = Column(Integer, index=True)
     user_id = Column(Integer, index=True)
