@@ -1,4 +1,12 @@
+from datetime import datetime
+import time
+
+
 if __name__ == "__main__":
     from lotus_cron import LotosDashboardCron
 
-    LotosDashboardCron("config-stg.json").fetch_lead_insight()
+    cron = LotosDashboardCron("config-stg.json")
+    while True:
+        cron.fetch_lead_insight()
+        print("Sleeping for 60 seconds", datetime.now())
+        time.sleep(60)
