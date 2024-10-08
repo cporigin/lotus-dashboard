@@ -34,14 +34,20 @@ class LotosDashboardCron:
     def get_local_engine(self):
         if self.local_engine is None:
             config_json = self.config
-            SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{config_json['MYSQL_USER']}:{config_json['MYSQL_PASSWORD']}@{config_json['MYSQL_HOST']}:{config_json['MYSQL_PORT']}/{config_json['MYSQL_DB']}{config_json['MYSQL_PARAMS']}"
+            host = config_json["MYSQL_HOST"]
+            if "MYSQL_PORT" in config_json:
+                host = f"{host}:{config_json['MYSQL_PORT']}"
+            SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{config_json['MYSQL_USER']}:{config_json['MYSQL_PASSWORD']}@{host}/{config_json['MYSQL_DB']}{config_json['MYSQL_PARAMS']}"
             self.local_engine = create_engine(SQLALCHEMY_DATABASE_URI)
         return self.local_engine
 
     def get_server_engine(self):
         if self.server_engine is None:
             config_json = self.config["DASHBOARD_DB"]
-            SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{config_json['MYSQL_USER']}:{config_json['MYSQL_PASSWORD']}@{config_json['MYSQL_HOST']}/{config_json['MYSQL_DB']}{config_json['MYSQL_PARAMS']}"
+            host = config_json["MYSQL_HOST"]
+            if "MYSQL_PORT" in config_json:
+                host = f"{host}:{config_json['MYSQL_PORT']}"
+            SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{config_json['MYSQL_USER']}:{config_json['MYSQL_PASSWORD']}@{host}/{config_json['MYSQL_DB']}{config_json['MYSQL_PARAMS']}"
             self.server_engine = create_engine(SQLALCHEMY_DATABASE_URI)
         return self.server_engine
 
@@ -84,7 +90,7 @@ class LotosDashboardCron:
     def fetch(self):
         data = self.fetch_data()
         self.fetch_lead_insight(data)
-        self.fetch_user_performance(data)
+        # self.fetch_user_performance(data)
 
     def fetch_data(self):
         engine = self.get_server_engine()
@@ -628,4 +634,6 @@ class LotosDashboardCron:
         #     "user_comment_created_at>task_due_date"
         # ).index
 
-        self.dataframe_to_db(UserPerformance, df_kpi_performance_user)
+        # df_kpi_performance_user.to_csv("df_kpi_performance_user.csv")
+
+        # self.dataframe_to_db(UserPerformance, df_kpi_performance_user.iloc[21:22])

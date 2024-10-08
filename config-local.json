@@ -1,9 +1,9 @@
 {
   "MYSQL_DB": "lotus_superset_stg",
   "MYSQL_HOST": "localhost",
-  "MYSQL_PORT": "3306",
-  "MYSQL_USER": "root",
-  "MYSQL_PASSWORD": "Password1#",
+  "MYSQL_PORT": "3313",
+  "MYSQL_USER": "user",
+  "MYSQL_PASSWORD": "password",
   "MYSQL_PARAMS": "?charset=utf8mb4",
   "CORS_ORIGINS": [
     "http://localhost",
@@ -12,20 +12,12 @@
     "https://mqdc-frontend.vercel.app/"
   ],
   "SECRET_KEY": "DFgUoCSk1mG5QgSTCqOqNIz77nIKOo/E6SIYtcrUHUQjnztOvMYS9oOl",
-  "DASHBOARD_DB_STG": {
-    "MYSQL_DB": "lotus_dashboard_stg",
+  "DASHBOARD_DB": {
+    "MYSQL_DB": "cpoerp",
     "MYSQL_HOST": "localhost",
     "MYSQL_PORT": "3306",
-    "MYSQL_USER": "root",
-    "MYSQL_PASSWORD": "Password1#",
-    "MYSQL_PARAMS": "?charset=utf8mb4"
-  },
-  "DASHBOARD_DB_PROD": {
-    "MYSQL_DB": "lotus_dashboard_prod",
-    "MYSQL_HOST": "localhost",
-    "MYSQL_PORT": "3306",
-    "MYSQL_USER": "root",
-    "MYSQL_PASSWORD": "Password1#",
+    "MYSQL_USER": "lotusserp",
+    "MYSQL_PASSWORD": "S133FyP02PKK3YUt",
     "MYSQL_PARAMS": "?charset=utf8mb4"
   }
 }
