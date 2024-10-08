@@ -4,6 +4,8 @@ from sqlalchemy.orm import sessionmaker
 
 from lotus_dashboard.database import Base
 import lotus_dashboard.models as models
+from lotus_dashboard.models.lead_insight import LeadInsight
+from lotus_dashboard.models.user_performance import UserPerformance
 
 
 class LotosDashboardCron:
@@ -330,7 +332,7 @@ class LotosDashboardCron:
             how="left",
             on="deal_id",
         )
-        self.dataframe_to_db(models.LeadInsight, df_lead_insight)
+        self.dataframe_to_db(LeadInsight, df_lead_insight)
 
     def fetch_user_performance(self, data: tuple):
         (
@@ -625,4 +627,5 @@ class LotosDashboardCron:
         # index_early = df_kpi_performance_user.query(
         #     "user_comment_created_at>task_due_date"
         # ).index
-        self.dataframe_to_db(models.UserPerformance, df_kpi_performance_user)
+
+        self.dataframe_to_db(UserPerformance, df_kpi_performance_user)
