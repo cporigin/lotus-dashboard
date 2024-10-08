@@ -1,5 +1,5 @@
 {
-  "MYSQL_DB": "lotus_dashboard_stg",
+  "MYSQL_DB": "lotus_dashboard_prod",
   "MYSQL_HOST": "localhost",
   "MYSQL_PORT": "3306",
   "MYSQL_USER": "root",
