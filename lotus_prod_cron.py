@@ -7,6 +7,6 @@ if __name__ == "__main__":
 
     cron = LotosDashboardCron("config-prod.json")
     while True:
-        cron.fetch_lead_insight()
+        cron.fetch()
         print("Sleeping for 60 seconds", datetime.now())
         time.sleep(60)

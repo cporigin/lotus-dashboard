@@ -79,7 +79,12 @@ class LotosDashboardCron:
             method="multi",
         )
 
-    def fetch_lead_insight(self):
+    def fetch(self):
+        data = self.fetch_data()
+        self.fetch_lead_insight(data)
+        self.fetch_user_performance(data)
+
+    def fetch_data(self):
         engine = self.get_server_engine()
         conn = engine.connect()
         df_lead = pd.read_sql("select * from `lead`", conn)
@@ -90,6 +95,34 @@ class LotosDashboardCron:
         df_group = pd.read_sql("select * from `group`", conn)
         df_deal_task = pd.read_sql("select * from deal_task", conn)
         df_deal_comment = pd.read_sql("select * from deal_comment", conn)
+        df_user = pd.read_sql("select * from user", conn)
+        df_user_access = pd.read_sql("select * from user_access", conn)
+        return (
+            df_lead,
+            df_deal,
+            df_mall,
+            df_area,
+            df_area_deal,
+            df_group,
+            df_deal_task,
+            df_deal_comment,
+            df_user,
+            df_user_access,
+        )
+
+    def fetch_lead_insight(self, data: tuple):
+        (
+            df_lead,
+            df_deal,
+            df_mall,
+            df_area,
+            df_area_deal,
+            df_group,
+            df_deal_task,
+            df_deal_comment,
+            df_user,
+            df_user_access,
+        ) = data
 
         df_lead_insight = pd.merge(
             df_lead.rename(columns={"id": "lead_id"}), df_deal, how="left", on="lead_id"
@@ -298,3 +331,298 @@ class LotosDashboardCron:
             on="deal_id",
         )
         self.dataframe_to_db(models.LeadInsight, df_lead_insight)
+
+    def fetch_user_performance(self, data: tuple):
+        (
+            df_lead,
+            df_deal,
+            df_mall,
+            df_area,
+            df_area_deal,
+            df_group,
+            df_deal_task,
+            df_deal_comment,
+            df_user,
+            df_user_access,
+        ) = data
+
+        df_kpi = pd.merge(
+            df_lead.rename(
+                columns={
+                    "id": "lead_id",
+                    "created_at": "lead_created_at",
+                    "updated_at": "lead_updated_at",
+                }
+            )[["lead_id", "lead_created_at"]],
+            df_deal.rename(
+                columns={
+                    "id": "deal_id",
+                    "code": "deal_code",
+                    "created_at": "deal_created_at",
+                    "updated_at": "deal_updated_at",
+                }
+            ).drop(columns=["user_id"]),
+            on="lead_id",
+            how="left",
+        )
+        df_kpi = pd.merge(
+            df_kpi,
+            df_deal_task.rename(
+                columns={
+                    "group_id": "assigned_group",
+                    "created_at": "task_created_at",
+                    "due_date": "task_due_date",
+                    "id": "deal_task_id",
+                    "status": "deal_task_status",
+                    "updated_at": "task_updated_at",
+                }
+            ),
+            on="deal_id",
+            how="left",
+        )
+        df_kpi = pd.merge(
+            df_kpi,
+            df_deal_comment.rename(
+                columns={
+                    "id": "deal_comment_id",
+                    "created_at": "comment_created_at",
+                    "user_id": "deal_comment_user_id",
+                }
+            ),
+            on=["deal_id", "deal_task_id"],
+            how="left",
+        ).drop(columns=["loi_reference_x", "loi_reference_y"])
+        df_kpi.loc[
+            df_kpi.query("status=='win' or status =='lose'").index,
+            "time_close_deal_task",
+        ] = (
+            df_kpi.query("status=='win' or status =='lose'")["comment_created_at"]
+            - df_kpi.query("status=='win' or status =='lose'")["task_created_at"]
+        )
+        df_kpi.loc[
+            df_kpi.query("time_close_deal_task.notna()").index, "time_close_deal_task"
+        ] = [
+            i.total_seconds() / 3600
+            for i in df_kpi.loc[
+                df_kpi.query("time_close_deal_task.notna()").index,
+                "time_close_deal_task",
+            ]
+        ]
+
+        df_kpi_time_first_activity = df_kpi.copy().drop_duplicates(
+            ["lead_id", "deal_id", "deal_task_id"], keep="first"
+        )
+        df_kpi_time_first_activity = df_kpi_time_first_activity.query(
+            "comment_created_at.notna() or task_status== 'transfer'"
+        )
+        df_kpi_time_first_activity.loc[
+            df_kpi_time_first_activity.query("comment_created_at.notna()").index,
+            "time_first_activity",
+        ] = (
+            df_kpi_time_first_activity.query("comment_created_at.notna()")[
+                "comment_created_at"
+            ]
+            - df_kpi_time_first_activity.query("comment_created_at.notna()")[
+                "task_created_at"
+            ]
+        )
+        df_kpi_time_first_activity.loc[
+            df_kpi_time_first_activity.query("comment_created_at.isna()").index,
+            "time_first_activity",
+        ] = (
+            df_kpi_time_first_activity.query("comment_created_at.isna()")[
+                "task_updated_at"
+            ]
+            - df_kpi_time_first_activity.query("comment_created_at.isna()")[
+                "task_created_at"
+            ]
+        )
+        df_kpi_time_first_activity["time_first_activity"] = [
+            i.total_seconds() / 3600
+            for i in df_kpi_time_first_activity["time_first_activity"]
+        ]
+
+        df_kpi_time_first_contacted = (
+            df_kpi.copy()
+            .query("status=='contacted'")
+            .drop_duplicates(["lead_id", "deal_id", "deal_task_id"], keep="first")
+        )
+        df_kpi_time_first_contacted["time_first_contacted"] = (
+            df_kpi_time_first_contacted["comment_created_at"]
+            - df_kpi_time_first_contacted["task_created_at"]
+        )
+        df_kpi_time_first_contacted["time_first_contacted"] = [
+            i.total_seconds() / 3600
+            for i in df_kpi_time_first_contacted["time_first_contacted"]
+        ]
+
+        # df_kpi_time_doing_task = df_kpi.copy().drop_duplicates(['lead_id','deal_id','task_id'],keep='last')
+        df_kpi_time_doing_task = df_kpi.copy()
+        df_kpi_time_doing_task.loc[
+            df_kpi_time_doing_task.query("status=='win' or status == 'lose'").index,
+            "time_doing_task",
+        ] = (
+            df_kpi_time_doing_task.loc[
+                df_kpi_time_doing_task.query("status=='win' or status == 'lose'").index,
+                "comment_created_at",
+            ]
+            - df_kpi_time_doing_task.loc[
+                df_kpi_time_doing_task.query("status=='win' or status == 'lose'").index,
+                "task_created_at",
+            ]
+        )
+        df_kpi_time_doing_task_get_last = df_kpi_time_doing_task.copy().drop_duplicates(
+            ["lead_id", "deal_id", "task_id"], keep="last"
+        )
+        df_kpi_time_doing_task_get_last.loc[
+            df_kpi_time_doing_task_get_last.query(
+                "task_status=='transfer' or task_status=='expired'"
+            ).index,
+            "time_doing_task",
+        ] = (
+            df_kpi_time_doing_task_get_last.query(
+                "task_status=='transfer' or task_status=='expired'"
+            )["task_updated_at"]
+            - df_kpi_time_doing_task_get_last.query(
+                "task_status=='transfer' or task_status=='expired'"
+            )["task_created_at"]
+        )
+        df_kpi_time_doing_task.loc[
+            df_kpi_time_doing_task_get_last.index, "time_doing_task"
+        ] = df_kpi_time_doing_task_get_last["time_doing_task"]
+        df_kpi_time_doing_task["time_doing_task"] = df_kpi_time_doing_task[
+            "time_doing_task"
+        ].apply(lambda x: x.total_seconds() / 3600 if pd.notnull(x) else np.nan)
+
+        df_kpi.loc[df_kpi_time_first_activity.index, "time_first_activity"] = (
+            df_kpi_time_first_activity["time_first_activity"]
+        )
+        df_kpi.loc[df_kpi_time_first_contacted.index, "time_first_contacted"] = (
+            df_kpi_time_first_contacted["time_first_contacted"]
+        )
+        df_kpi.loc[df_kpi_time_doing_task.index, "time_doing_task"] = (
+            df_kpi_time_doing_task["time_doing_task"]
+        )
+
+        list_recently_task_on_deal = df_kpi.drop_duplicates(
+            ["lead_id", "deal_id"], keep="last"
+        )["task_id"]
+        index_recently_task = df_kpi.query(
+            "task_id in @list_recently_task_on_deal"
+        ).index
+        df_kpi["is_recent_task_on_deal"] = False
+        df_kpi.loc[index_recently_task, "is_recent_task_on_deal"] = True
+
+        df_user_respond = pd.merge(
+            df_user.rename(columns={"id": "user_id"}),
+            df_user_access.rename(columns={"id": "user_access_id"}),
+            on="user_id",
+            how="left",
+        )
+        df_user_respond = pd.merge(
+            df_user_respond,
+            df_group.rename(columns={"id": "group_id", "name": "group_name"}),
+        )
+        index_hq_mall = df_user_respond.query("role=='hq_manager' and type=='mall'")
+        df_user_respond = df_user_respond.drop(index_hq_mall.index)
+
+        index_area_mall = df_user_respond.query("role=='area_manager' and type=='mall'")
+        df_user_respond = df_user_respond.drop(index_area_mall.index)
+
+        index_region_mall = df_user_respond.query(
+            "role=='region_manager' and type=='mall'"
+        )
+        df_user_respond = df_user_respond.drop(index_region_mall.index)
+
+        df_user_respond["first_last"] = (
+            df_user_respond["first_name"] + " " + df_user_respond["last_name"]
+        )
+
+        df_user_respond = df_user_respond.groupby(
+            ["group_id", "group_name", "code", "type"], as_index=False
+        ).agg(
+            {
+                "username": list,
+                "first_last": list,
+                "last_active_date": list,
+                "role": list,
+                "user_id": list,
+            }
+        )
+        df_user_respond
+
+        ##############################################################################
+
+        df_kpi = pd.merge(
+            df_kpi,
+            df_user_respond.rename(columns={"group_id": "assigned_group"}),
+            on=["assigned_group"],
+            how="left",
+        )
+        df_kpi = pd.merge(
+            df_kpi,
+            df_mall[["code", "region", "area_code", "province"]],
+            how="left",
+            on="code",
+        )
+        ##############################################################################
+
+        df_kpi_performance_user = df_kpi.copy()
+        recently_task_on_deal = df_kpi_performance_user.drop_duplicates(
+            ["lead_id", "deal_id"], keep="last"
+        )["deal_task_id"].unique()
+
+        df_kpi_performance_user = df_kpi_performance_user.query(
+            "deal_task_id in @recently_task_on_deal"
+        )
+        # df_kpi_performance_user = pd.merge(df_kpi_performance_user,df_user.rename(columns={"id":"deal_comment_user_id","last_active_date":"user_last_active_date"}),how="left",on="deal_comment_user_id")
+
+        df_kpi_performance_user_exploded = df_kpi_performance_user.query(
+            "(deal_task_status == 'new' and task_status == 'active') or (deal_comment_user_id.isna())"
+        )
+
+        df_kpi_performance_user = df_kpi_performance_user.drop(
+            df_kpi_performance_user_exploded.index
+        )
+        df_kpi_performance_user_exploded = df_kpi_performance_user_exploded.explode(
+            ["user_id", "last_active_date", "username", "role"]
+        )
+
+        df_kpi_performance_user_exploded["deal_comment_user_id"] = (
+            df_kpi_performance_user_exploded["user_id"]
+        )
+        df_kpi_performance_user = pd.concat(
+            [df_kpi_performance_user, df_kpi_performance_user_exploded]
+        ).sort_values(["lead_id", "deal_id", "deal_task_id"])
+
+        df_kpi_performance_user = pd.merge(
+            df_kpi_performance_user,
+            df_user.rename(
+                columns={
+                    "id": "deal_comment_user_id",
+                    "last_active_date": "user_comment_last_active_date",
+                    "created_at": "user_comment_created_at",
+                }
+            )[
+                [
+                    "deal_comment_user_id",
+                    "user_comment_last_active_date",
+                    "first_name",
+                    "last_name",
+                    "user_comment_created_at",
+                ]
+            ],
+            how="left",
+            on="deal_comment_user_id",
+        )
+        df_kpi_performance_user["first_last"] = (
+            df_kpi_performance_user["first_name"]
+            + " "
+            + df_kpi_performance_user["last_name"]
+        )
+        # df_kpi_performance_user = df_kpi_performance_user.query("user_created_at<=task_created_at")
+
+        # index_early = df_kpi_performance_user.query(
+        #     "user_comment_created_at>task_due_date"
+        # ).index
+        self.dataframe_to_db(models.UserPerformance, df_kpi_performance_user)
