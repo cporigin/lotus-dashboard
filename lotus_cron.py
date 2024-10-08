@@ -628,4 +628,4 @@ class LotosDashboardCron:
         #     "user_comment_created_at>task_due_date"
         # ).index
 
-        self.dataframe_to_db(UserPerformance, df_kpi_performance_user)
+        self.dataframe_to_db(UserPerformance, df_kpi_performance_user.head(10))
