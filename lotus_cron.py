@@ -38,7 +38,7 @@ class LotosDashboardCron:
     def get_server_engine(self):
         if self.server_engine is None:
             config_json = self.config["DASHBOARD_DB"]
-            SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{config_json['MYSQL_USER']}:{config_json['MYSQL_PASSWORD']}@/{config_json['MYSQL_DB']}{config_json['MYSQL_PARAMS']}"
+            SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{config_json['MYSQL_USER']}:{config_json['MYSQL_PASSWORD']}@{config_json['MYSQL_HOST']}/{config_json['MYSQL_DB']}{config_json['MYSQL_PARAMS']}"
             self.server_engine = create_engine(SQLALCHEMY_DATABASE_URI)
         return self.server_engine
 

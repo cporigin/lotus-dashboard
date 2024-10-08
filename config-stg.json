@@ -14,8 +14,9 @@
   "SECRET_KEY": "DFgUoCSk1mG5QgSTCqOqNIz77nIKOo/E6SIYtcrUHUQjnztOvMYS9oOl",
   "DASHBOARD_DB": {
     "MYSQL_DB": "cpoerp",
+    "MYSQL_HOST": "10.112.0.3",
     "MYSQL_USER": "lotusserp",
     "MYSQL_PASSWORD": "S133FyP02PKK3YUt",
-    "MYSQL_PARAMS": "?unix_socket=/cloudsql/cp-origin:asia-southeast2:cp-origin-mysql8-dev&charset=utf8mb4"
+    "MYSQL_PARAMS": "?charset=utf8mb4"
   }
 }
