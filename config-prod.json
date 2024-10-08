@@ -1,0 +1,21 @@
+{
+  "MYSQL_DB": "lotus_dashboard_stg",
+  "MYSQL_HOST": "localhost",
+  "MYSQL_PORT": "3306",
+  "MYSQL_USER": "root",
+  "MYSQL_PASSWORD": "Password1#",
+  "MYSQL_PARAMS": "?charset=utf8mb4",
+  "CORS_ORIGINS": [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://127.0.0.1:8910",
+    "https://mqdc-frontend.vercel.app/"
+  ],
+  "SECRET_KEY": "DFgUoCSk1mG5QgSTCqOqNIz77nIKOo/E6SIYtcrUHUQjnztOvMYS9oOl",
+  "DASHBOARD_DB": {
+    "MYSQL_DB": "cpoerp",
+    "MYSQL_USER": "lotusserp",
+    "MYSQL_PASSWORD": "S133FyP02PKK3YUt",
+    "MYSQL_PARAMS": "?unix_socket=/cloudsql/cp-origin:asia-southeast2:cp-origin-mysql8&charset=utf8mb4"
+  }
+}
