@@ -297,4 +297,4 @@ class LotosDashboardCron:
             how="left",
             on="deal_id",
         )
-        self.dataframe_to_db(models.LeadInsight, df_lead_insight.head(10))
+        self.dataframe_to_db(models.LeadInsight, df_lead_insight)
