@@ -65,7 +65,6 @@ class LotosDashboardCron:
         df = pd.read_csv(csv_file)
         df.where(df.notnull(), None)
         df.replace({np.nan: None, pd.NaT: None, "NaT": None, "NaN": None}, inplace=True)
-        self.truncate_db()
         df.to_sql(
             model.__tablename__,
             con=engine.connect(),
@@ -78,7 +77,6 @@ class LotosDashboardCron:
         engine = self.get_local_engine()
         df.where(df.notnull(), None)
         df.replace({np.nan: None, pd.NaT: None, "NaT": None, "NaN": None}, inplace=True)
-        self.truncate_db()
         df.to_sql(
             model.__tablename__,
             con=engine.connect(),
@@ -89,6 +87,7 @@ class LotosDashboardCron:
 
     def fetch(self):
         data = self.fetch_data()
+        self.truncate_db()
         self.fetch_lead_insight(data)
         self.fetch_user_performance(data)
 
