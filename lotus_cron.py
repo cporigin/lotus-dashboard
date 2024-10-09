@@ -90,7 +90,7 @@ class LotosDashboardCron:
     def fetch(self):
         data = self.fetch_data()
         self.fetch_lead_insight(data)
-        # self.fetch_user_performance(data)
+        self.fetch_user_performance(data)
 
     def fetch_data(self):
         engine = self.get_server_engine()
