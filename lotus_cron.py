@@ -527,9 +527,12 @@ class LotosDashboardCron:
             on="user_id",
             how="left",
         )
+
         df_user_respond = pd.merge(
-            df_user_respond,
             df_group.rename(columns={"id": "group_id", "name": "group_name"}),
+            df_user_respond,
+            on="group_id",
+            how="left",
         )
         index_hq_mall = df_user_respond.query("role=='hq_manager' and type=='mall'")
         df_user_respond = df_user_respond.drop(index_hq_mall.index)
@@ -557,7 +560,6 @@ class LotosDashboardCron:
                 "user_id": list,
             }
         )
-        df_user_respond
 
         ##############################################################################
 
@@ -567,12 +569,17 @@ class LotosDashboardCron:
             on=["assigned_group"],
             how="left",
         )
+        df_kpi_check = df_kpi.copy()
+
         df_kpi = pd.merge(
             df_kpi,
             df_mall[["code", "region", "area_code", "province"]],
             how="left",
             on="code",
         )
+
+        df_kpi
+
         ##############################################################################
 
         df_kpi_performance_user = df_kpi.copy()
@@ -593,7 +600,10 @@ class LotosDashboardCron:
             df_kpi_performance_user_exploded.index
         )
         df_kpi_performance_user_exploded = df_kpi_performance_user_exploded.explode(
-            ["user_id", "last_active_date", "username", "role"]
+            [
+                "user_id",
+                "last_active_date",
+            ]
         )
 
         df_kpi_performance_user_exploded["deal_comment_user_id"] = (
@@ -602,6 +612,8 @@ class LotosDashboardCron:
         df_kpi_performance_user = pd.concat(
             [df_kpi_performance_user, df_kpi_performance_user_exploded]
         ).sort_values(["lead_id", "deal_id", "deal_task_id"])
+
+        # df_kpi_check= df_kpi_performance_user.copy()
 
         df_kpi_performance_user = pd.merge(
             df_kpi_performance_user,
@@ -623,17 +635,20 @@ class LotosDashboardCron:
             how="left",
             on="deal_comment_user_id",
         )
-        df_kpi_performance_user["first_last"] = (
+        df_kpi_performance_user["user_comment_first_last"] = (
             df_kpi_performance_user["first_name"]
             + " "
             + df_kpi_performance_user["last_name"]
         )
         # df_kpi_performance_user = df_kpi_performance_user.query("user_created_at<=task_created_at")
+        columns_drop = [
+            "username",
+            "first_last",
+            "last_active_date",
+            "role",
+            "user_id",
+            "state_flows",
+        ]
+        df_kpi_performance_user = df_kpi_performance_user.drop(columns=columns_drop)
 
-        # index_early = df_kpi_performance_user.query(
-        #     "user_comment_created_at>task_due_date"
-        # ).index
-
-        # df_kpi_performance_user.to_csv("df_kpi_performance_user.csv")
-
-        # self.dataframe_to_db(UserPerformance, df_kpi_performance_user.iloc[21:22])
+        self.dataframe_to_db(UserPerformance)
