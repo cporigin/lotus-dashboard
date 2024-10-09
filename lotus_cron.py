@@ -87,9 +87,11 @@ class LotosDashboardCron:
 
     def fetch(self):
         data = self.fetch_data()
+        df_lead_insight = self.fetch_lead_insight(data)
+        df_user_performance = self.fetch_user_performance(data)
         self.truncate_db()
-        self.fetch_lead_insight(data)
-        self.fetch_user_performance(data)
+        self.dataframe_to_db(LeadInsight, df_lead_insight)
+        self.dataframe_to_db(UserPerformance, df_user_performance)
 
     def fetch_data(self):
         engine = self.get_server_engine()
@@ -337,7 +339,7 @@ class LotosDashboardCron:
             how="left",
             on="deal_id",
         )
-        self.dataframe_to_db(LeadInsight, df_lead_insight)
+        return df_lead_insight
 
     def fetch_user_performance(self, data: tuple):
         (
@@ -649,5 +651,4 @@ class LotosDashboardCron:
             "state_flows",
         ]
         df_kpi_performance_user = df_kpi_performance_user.drop(columns=columns_drop)
-
-        self.dataframe_to_db(UserPerformance, df_kpi_performance_user)
+        return df_kpi_performance_user
