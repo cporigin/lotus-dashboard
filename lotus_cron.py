@@ -651,4 +651,4 @@ class LotosDashboardCron:
         ]
         df_kpi_performance_user = df_kpi_performance_user.drop(columns=columns_drop)
 
-        self.dataframe_to_db(UserPerformance)
+        self.dataframe_to_db(UserPerformance, df_kpi_performance_user)
