@@ -1,5 +1,5 @@
 import numpy as np, pandas as pd, json
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, delete
 from sqlalchemy.orm import sessionmaker
 
 from lotus_dashboard.database import Base
@@ -60,36 +60,40 @@ class LotosDashboardCron:
         sess.commit()
         sess.close()
 
+    def drop_tables(self):
+        sess = self.get_session()
+        sess.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
+        for table in Base.metadata.tables:
+            sess.execute(text(f"DROP TABLE IF EXISTS `{table}`"))
+        sess.commit()
+        sess.close()
+        self.init_db()
+
     def import_csv_to_db(self, model: Base, csv_file: str):
-        engine = self.get_local_engine()
         df = pd.read_csv(csv_file)
         df.where(df.notnull(), None)
         df.replace({np.nan: None, pd.NaT: None, "NaT": None, "NaN": None}, inplace=True)
-        df.to_sql(
-            model.__tablename__,
-            con=engine.connect(),
-            if_exists="append",
-            index=False,
-            method="multi",
-        )
+        records = df.to_dict(orient="records")
+        sess = self.get_session()
+        sess.execute(text(f"TRUNCATE TABLE `{model.__tablename__}`"))
+        sess.bulk_insert_mappings(model, records)
+        sess.commit()
+        sess.close()
 
     def dataframe_to_db(self, model: Base, df: pd.DataFrame):
-        engine = self.get_local_engine()
         df.where(df.notnull(), None)
         df.replace({np.nan: None, pd.NaT: None, "NaT": None, "NaN": None}, inplace=True)
-        df.to_sql(
-            model.__tablename__,
-            con=engine.connect(),
-            if_exists="append",
-            index=False,
-            method="multi",
-        )
+        records = df.to_dict(orient="records")
+        sess = self.get_session()
+        sess.execute(text(f"TRUNCATE TABLE `{model.__tablename__}`"))
+        sess.bulk_insert_mappings(model, records)
+        sess.commit()
+        sess.close()
 
     def fetch(self):
         data = self.fetch_data()
         df_lead_insight = self.fetch_lead_insight(data)
         df_user_performance = self.fetch_user_performance(data)
-        self.truncate_db()
         self.dataframe_to_db(LeadInsight, df_lead_insight)
         self.dataframe_to_db(UserPerformance, df_user_performance)
 
