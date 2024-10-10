@@ -594,7 +594,7 @@ class LotosDashboardCron:
         # df_kpi_performance_user = pd.merge(df_kpi_performance_user,df_user.rename(columns={"id":"deal_comment_user_id","last_active_date":"user_last_active_date"}),how="left",on="deal_comment_user_id")
 
         df_kpi_performance_user_exploded = df_kpi_performance_user.query(
-            "(deal_task_status == 'new' and task_status == 'active') or (deal_comment_user_id.isna())"
+            "deal_task_status == 'new' and task_status == 'active'"
         )
 
         df_kpi_performance_user = df_kpi_performance_user.drop(
