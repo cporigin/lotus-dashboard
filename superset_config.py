@@ -101,3 +101,31 @@ EXTRA_CATEGORICAL_COLOR_SCHEMES = [
         "colors": ["#F65050", "#F6A050", "#00A743", "#00A743", "#68A4FF"],
     }
 ]
+
+FILTER_STATE_CACHE_CONFIG = {
+    "CACHE_TYPE": "RedisCache",
+    "CACHE_DEFAULT_TIMEOUT": 86400,
+    "CACHE_KEY_PREFIX": "superset_filter_cache",
+    "CACHE_REDIS_URL": "redis://localhost:6379/0",
+}
+
+EXPLORE_FORM_DATA_CACHE_CONFIG = {
+    "CACHE_TYPE": "RedisCache",
+    "CACHE_DEFAULT_TIMEOUT": 86400,
+    "CACHE_KEY_PREFIX": "superset_explore_cache",
+    "CACHE_REDIS_URL": "redis://localhost:6379/0",
+}
+
+CACHE_CONFIG = {
+    "CACHE_TYPE": "RedisCache",
+    "CACHE_DEFAULT_TIMEOUT": 86400,
+    "CACHE_KEY_PREFIX": "superset_cache",
+    "CACHE_REDIS_URL": "redis://localhost:6379/0",
+}
+
+DATA_CACHE_CONFIG = {
+    "CACHE_TYPE": "RedisCache",
+    "CACHE_DEFAULT_TIMEOUT": 86400,
+    "CACHE_KEY_PREFIX": "superset_data_cache",
+    "CACHE_REDIS_URL": "redis://localhost:6379/0",
+}
