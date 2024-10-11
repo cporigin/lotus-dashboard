@@ -278,7 +278,7 @@ class LotosDashboardCron:
         ]
 
         df_first_activity = df_lead_insight.copy().drop_duplicates(
-            "deal_id", keep="first"
+            ["lead_id", "deal_id"], keep="first"
         )
         df_first_activity = df_first_activity.query(
             "comment_created_at.notna() or task_status== 'transfer'"
@@ -323,7 +323,9 @@ class LotosDashboardCron:
             for i in df_first_contacted_time["first_contacted_time_used"]
         ]
 
-        df_lead_insight = df_lead_insight.drop_duplicates("deal_id", keep="last")
+        df_lead_insight = df_lead_insight.drop_duplicates(
+            ["lead_id", "deal_id"], keep="last"
+        )
         df_lead_insight = pd.merge(
             df_lead_insight,
             df_first_activity[["deal_id", "time_first_activity"]],
