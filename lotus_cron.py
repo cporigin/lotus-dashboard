@@ -276,6 +276,9 @@ class LotosDashboardCron:
         df_deal_closed["deal_time_used"] = [
             i.total_seconds() / 3600 for i in df_deal_closed["deal_time_used"]
         ]
+        df_deal_closed = df_deal_closed.drop_duplicates(
+            ["lead_id", "deal_id"], keep="first"
+        )
 
         df_first_activity = df_lead_insight.copy().drop_duplicates(
             ["lead_id", "deal_id"], keep="first"
@@ -338,7 +341,6 @@ class LotosDashboardCron:
             how="left",
             on="deal_id",
         )
-
         df_lead_insight = pd.merge(
             df_lead_insight,
             df_deal_closed[["deal_id", "deal_time_used"]],
